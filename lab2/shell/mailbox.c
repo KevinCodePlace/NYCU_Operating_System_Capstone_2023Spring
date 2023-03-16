@@ -14,9 +14,11 @@ int mailbox_call()
         /* is there a response? */
         do{asm volatile("nop");}while(*MBOX_STATUS & MBOX_EMPTY);
         /* is it a response to our message? */
-        if(r == *MBOX_READ)
+        if(r == *MBOX_READ){
             /* is it a valid successful response? */
-            return mailbox[1]==MBOX_RESPONSE;
+	    if(mailbox[1] == MBOX_RESPONSE)
+		    return 1; 
+	}
     }
     return 0;
 }

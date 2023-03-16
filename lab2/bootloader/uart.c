@@ -6,6 +6,15 @@
 void uart_init()
 {
     register unsigned int r;
+    // P.104 Since I need UART 1 Transmit/Receive Data -> TXD1/RXD1
+    // p.102 I find These two in GPIO 14/15 Fun5
+    // Since each GPFSEL controls 10 pin, GPFSEL1 controls 10-19
+    // That's why I need GPFSEL1  
+    r=*GPFSEL1;
+    r&=~((7<<12)|(7<<15)); // gpio14, gpio15 clear to 0
+    r|=(2<<12)|(2<<15);    // set gpio14 and 15 to 010/010 which is alt5
+    *GPFSEL1 = r;          // from here activate Trasmitter&Receiver
+
     //Since We've set alt5, we want to disable basic input/output
     //To achieve this, we need diable pull-up and pull-dwon
     *GPPUD = 0;   //  P101 top. 00- = off - disable pull-up/down 
@@ -22,7 +31,7 @@ void uart_init()
     *GPPUDCLK0 = 0;        // flush GPIO setup
 
 
-    r=500; while(r--) { asm volatile("nop"); }
+    r=1000; while(r--) { asm volatile("nop"); }
 
     /* initialize UART */
     *AUX_ENABLE |=1;       
@@ -56,14 +65,6 @@ void uart_init()
     /* map UART1 to GPIO pins */
     *AUX_MU_CNTL = 3; // enable Transmitter,Receiver
     
-    // P.104 Since I need UART 1 Transmit/Receive Data -> TXD1/RXD1
-    // p.102 I find These two in GPIO 14/15 Fun5
-    // Since each GPFSEL controls 10 pin, GPFSEL1 controls 10-19
-    // That's why I need GPFSEL1  
-    r=*GPFSEL1;
-    r&=~((7<<12)|(7<<15)); // gpio14, gpio15 clear to 0
-    r|=(2<<12)|(2<<15);    // set gpio14 and 15 to 010/010 which is alt5
-    *GPFSEL1 = r;          // from here activate Trasmitter&Receiver
 }    
     
 

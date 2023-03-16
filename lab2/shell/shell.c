@@ -3,6 +3,7 @@
 #include "header/utils.h"
 #include "header/mailbox.h"
 #include "header/reboot.h"
+#include "header/cpio.h"
 
 void shell(){
   char array_space[256];
@@ -29,24 +30,22 @@ void shell(){
      } else if (string_compare(input_string,"hello")) {
        uart_send_string("Hello World!\n");
      } else if (string_compare(input_string,"info")) {
-         if (mailbox_call()) {
            get_board_revision();
            uart_send_string("My board revision is: ");
            uart_binary_to_hex(mailbox[5]);
-           uart_send_string("\r\n");
+           uart_send_string("\n");
            get_arm_mem();
            uart_send_string("My ARM memory base address is: ");
            uart_binary_to_hex(mailbox[5]);
-           uart_send_string("\r\n");
+           uart_send_string("\n");
            uart_send_string("My ARM memory size is: ");
            uart_binary_to_hex(mailbox[6]);
-           uart_send_string("\r\n");
-         } else {
-           uart_send_string("Unable to query serial!\n");
-         } 
+           uart_send_string("\n");  
      } else if (string_compare(input_string,"reboot")) {
            uart_send_string("Rebooting....\n");
            reset(1000);
-     }     
+     } else if (string_compare(input_string,"ls")) {
+	   cpio_ls();
+     } 
   }
 }

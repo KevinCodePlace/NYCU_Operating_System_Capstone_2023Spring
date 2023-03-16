@@ -6,6 +6,32 @@
 void uart_init()
 {
     register unsigned int r;
+    // P.104 Since I need UART 1 Transmit/Receive Data -> TXD1/RXD1
+    // p.102 I find These two in GPIO 14/15 Fun5
+    // Since each GPFSEL controls 10 pin, GPFSEL1 controls 10-19
+    // That's why I need GPFSEL1  
+    r=*GPFSEL1;
+    r&=~((7<<12)|(7<<15)); // gpio14, gpio15 clear to 0
+    r|=(2<<12)|(2<<15);    // set gpio14 and 15 to 010/010 which is alt5
+    *GPFSEL1 = r;          // from here activate Trasmitter&Receiver
+
+    //Since We've set alt5, we want to disable basic input/output
+    //To achieve this, we need diable pull-up and pull-dwon
+    *GPPUD = 0;   //  P101 top. 00- = off - disable pull-up/down 
+    //Wait 150 cycles
+    //this provides the required set-up time for the control signal 
+    r=150; while(r--) { asm volatile("nop"); }
+    // GPIO control 54 pins
+    // GPPUDCLK0 controls 0-31 pins
+    // GPPUDCLK1 controls 32-53 pins
+    // set 14,15 bits = 1 which means we will modify these two bits
+    // trigger: set pins to 1 and wait for one clock
+    *GPPUDCLK0 = (1<<14)|(1<<15);
+    r=150; while(r--) { asm volatile("nop"); }
+    *GPPUDCLK0 = 0;        // flush GPIO setup
+
+
+    r=1000; while(r--) { asm volatile("nop"); }
 
     /* initialize UART */
     *AUX_ENABLE |=1;       
@@ -39,30 +65,8 @@ void uart_init()
     /* map UART1 to GPIO pins */
     *AUX_MU_CNTL = 3; // enable Transmitter,Receiver
     
-    // P.104 Since I need UART 1 Transmit/Receive Data -> TXD1/RXD1
-    // p.102 I find These two in GPIO 14/15 Fun5
-    // Since each GPFSEL controls 10 pin, GPFSEL1 controls 10-19
-    // That's why I need GPFSEL1  
-    r=*GPFSEL1;
-    r&=~((7<<12)|(7<<15)); // gpio14, gpio15 clear to 0
-    r|=(2<<12)|(2<<15);    // set gpio14 and 15 to 010/010 which is alt5
-    *GPFSEL1 = r;          // from here activate Trasmitter&Receiver
+}    
     
-    //Since We've set alt5, we want to disable basic input/output
-    //To achieve this, we need diable pull-up and pull-dwon
-    *GPPUD = 0;            //  P101 top. 00- = off - disable pull-up/down 
-    //Wait 150 cycles
-    //this provides the required set-up time for the control signal 
-    r=150; while(r--) { asm volatile("nop"); }
-    // GPIO control 54 pins
-    // GPPUDCLK0 controls 0-31 pins
-    // GPPUDCLK1 controls 32-53 pins
-    // set 14,15 bits = 1 which means we will modify these two bits
-    // trigger: set pins to 1 and wait for one clock
-    *GPPUDCLK0 = (1<<14)|(1<<15);
-    r=150; while(r--) { asm volatile("nop"); }
-    *GPPUDCLK0 = 0;        // flush GPIO setup
-}
 
 /**
  * Send a character
@@ -83,6 +87,18 @@ void uart_send_char(unsigned int c) {
 }
 
 /**
+ * Display a string
+ */
+void uart_send_string(char* s) {
+    while(*s) {
+        /* convert newline to carriage return + newline */
+        if(*s=='\n')
+            uart_send_char('\r');
+        uart_send_char(*s++);
+    }
+}
+
+/**
  * Receive a character
  */
 char uart_get_char() {
@@ -96,17 +112,6 @@ char uart_get_char() {
     return r=='\r'?'\n':r;
 }
 
-/**
- * Display a string
- */
-void uart_send_string(char* s) {
-    while(*s) {
-        /* convert newline to carriage return + newline */
-        if(*s=='\n')
-            uart_send_char('\r');
-        uart_send_char(*s++);
-    }
-}
 
 /**
  * Display a binary value in hexadecimal
