@@ -13,12 +13,13 @@ void shell(){
      uart_send_string("# ");
      while(1) {
        element = uart_get_char();
-       *input_string++ = element;
-       uart_send_char(element);
+	   uart_send_char(element);
        if(element == '\n'){
          *input_string = '\0';
+		 *++input_string = '\n';
          break;
        }
+	   *input_string++ = element;
      }
      
      input_string = array_space;
@@ -27,6 +28,7 @@ void shell(){
        uart_send_string("hello	:print Hello World!\n");
        uart_send_string("info	:Get the hardware's information\n");
        uart_send_string("reboot	:reboot the device\n");
+	   uart_send_string("ls	:list the file\n");
      } else if (string_compare(input_string,"hello")) {
        uart_send_string("Hello World!\n");
      } else if (string_compare(input_string,"info")) {
@@ -45,7 +47,7 @@ void shell(){
            uart_send_string("Rebooting....\n");
            reset(1000);
      } else if (string_compare(input_string,"ls")) {
-	   cpio_ls();
+	       cpio_ls();
      } 
   }
 }
