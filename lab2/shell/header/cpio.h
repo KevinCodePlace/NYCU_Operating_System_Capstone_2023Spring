@@ -2,7 +2,8 @@
 #define RASP_CPIO_ADDR  (char *)0x20000000;//rasperrypi
  
 void cpio_ls();
-
+void cpio_cat(char* filename);
+	
 struct cpio_header {
     // uses 8-byte	hexadecimal fields for all numbers
     char c_magic[6];    //determine whether this archive is written with little-endian or big-endian integers.
