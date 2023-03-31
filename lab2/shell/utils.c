@@ -27,6 +27,7 @@ unsigned long utils_atoi(const char *s, int char_size) {
 
 void utils_align(void *size, unsigned int s) {
 	unsigned long* x = (unsigned long*) size;
-	*x = ((*x) + (s-1)) & (~(s-1));
+	unsigned long mask = s-1;
+	*x = ((*x) + mask) & (~mask);
 }
 

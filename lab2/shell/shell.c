@@ -60,6 +60,8 @@ void shell(){
 		   char filename[BUFFER_MAX_SIZE];
 		   read_command(filename);
 		   cpio_cat(filename);
+	 } else {
+		 uart_send_string("The instruct is not exist.\n");
 	 }
   }
 }
