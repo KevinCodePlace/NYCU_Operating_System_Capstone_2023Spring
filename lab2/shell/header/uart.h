@@ -1,4 +1,5 @@
 #include "gpio.h"
+#include <stdint.h>
 
 void uart_init();
 void uart_send_char(unsigned int c);

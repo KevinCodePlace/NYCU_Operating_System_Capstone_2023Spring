@@ -4,6 +4,7 @@
 #include "header/mailbox.h"
 #include "header/reboot.h"
 #include "header/cpio.h"
+#include "header/allocator.h"
 #define BUFFER_MAX_SIZE 256u
 
 
@@ -36,6 +37,7 @@ void shell(){
        uart_send_string("reboot	:reboot the device\n");
 	   uart_send_string("ls	:list the file\n");
 	   uart_send_string("cat	:print file content\n");
+	   uart_send_string("malloc	:give dynamic memory space\n");
      } else if (utils_string_compare(input_string,"hello")) {
        uart_send_string("Hello World!\n");
      } else if (utils_string_compare(input_string,"info")) {
@@ -60,6 +62,22 @@ void shell(){
 		   char filename[BUFFER_MAX_SIZE];
 		   read_command(filename);
 		   cpio_cat(filename);
+	 } else if (utils_string_compare(input_string,"malloc")){
+		 char *a = simple_malloc(sizeof("9876"));
+		 char *b = simple_malloc(sizeof("345"));
+		 a[0] = '9';
+		 a[1] = '8';
+		 a[2] = '7';
+		 a[3] = '6';
+		 a[4] = '\0';
+		 b[0] = '3';
+		 b[1] = '4';
+		 b[2] = '5';
+		 b[3] = '\0';
+		 uart_send_string(a);
+		 uart_send_char('\n');
+	     uart_send_string(b);
+		 uart_send_char('\n');	 
 	 } else {
 		 uart_send_string("The instruct is not exist.\n");
 	 }
