@@ -1,4 +1,4 @@
-.section ".text.boot"
+.section ".text.kernel"
 
 .global _start
 
@@ -15,26 +15,24 @@ _start:
     cbz     x20, setting
     // cpu id > 0, stop
 
-halt: 	wfe
+halt: 	
+	wfe
 	b	halt
 
-setting: ldr x1, =_start
- 	 mov sp, x1
-	 ldr x1, =__bss_start
-	 ldr w2, =__bss_size
+setting: 
+	adr x20, _sbss
+	adr x21, _ebss
+	sub x21, x21, x20
 
-clear_bss: cbz w2, kernel_main
-	   str xzr,[x1],#8
-	   sub w2, w2, #1
-	   cbnz w2, clear_bss
+memzero: 
+	str xzr,[x20],#8
+	subs x21,x21,#8
+	b.gt memzero
 
-kernel_main: bl main
-     b  halt
+	mov sp,#0x400000
+	bl main
 
 .global _dtb_ptr
-.section .data
-//The .data section is used to store initialized global and static variables 
+.section .data 
 _dtb_ptr: .dc.a 0x0
-// This directive is an assembler directive
-// tells the assembler to reserve space for a pointer (an address) in the memory
-// on a 64-bit system, it reserves 8 bytes.
+

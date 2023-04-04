@@ -10,11 +10,10 @@ void main()
     uart_init();
 	
     // say hello
-	//uintptr_t dtb_ptr = (uintptr_t) _dtb_ptr;
-	//utils_align_up(dtb_ptr,8);
-	//uart_send_string("\ndtb loading at: ");
-	//uart_binary_to_hex(dtb_ptr);
-	//uart_send_char('\n');
+	uintptr_t dtb_ptr = (uintptr_t) _dtb_ptr;
+	uart_send_string("\ndtb loading at: ");
+	uart_binary_to_hex(dtb_ptr);
+	uart_send_char('\n');
 	//fdt_traverse(_dtb_ptr);
     uart_send_string("Type in `help` to get instruction menu!\n");
     //echo everything back

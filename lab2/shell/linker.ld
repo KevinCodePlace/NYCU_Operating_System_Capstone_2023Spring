@@ -1,21 +1,25 @@
-ENTRY(_start)
 
-SECTIONS
+SECTIONS 
 {
-    . = 0x80000;
-	.text : { KEEP(*(.text.kernel)) *(.text .text.* .gnu.linkonce.t*) }
-    .rodata : { *(.rodata .rodata.* .gnu.linkonce.r*) }
-    PROVIDE(_data = .);
-	.data : { *(.data .data.* .gnu.linkonce.d*) }
-	.bss (NOLOAD) : {
-        . = ALIGN(16);
-        __bss_start = .;
-        *(.bss .bss.*)
-        *(COMMON)
-        __bss_end = .;
-    }
-    _end = .;
+  . = 0x80000;
+  _stext = .;
+  .text : { 
+    *(.text.kernel)
+    *(.text) 
+    *(.rodata) 
+  }
+  . = ALIGN(0x1000);
+  _etext = .;
 
-   /DISCARD/ : { *(.comment) *(.gnu*) *(.note*) *(.eh_frame*) }
+  _sdata = .;
+  .data : { *(.data) }
+  . = ALIGN(0x1000);
+  _edata = .;
+
+  
+  _sbss = .;
+  .bss : { *(.bss*) } 
+  . = ALIGN(0x1000);
+  _ebss = .;  
+
 }
-__bss_size = (__bss_end - __bss_start)>>3;
