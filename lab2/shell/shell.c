@@ -5,8 +5,10 @@
 #include "header/reboot.h"
 #include "header/cpio.h"
 #include "header/allocator.h"
+#include "header/dtb.h"
 #define BUFFER_MAX_SIZE 256u
 
+extern void *_dtb_ptr;
 
 void read_command(char* buffer) {
 	int index = 0;
@@ -38,7 +40,9 @@ void shell(){
 	   uart_send_string("ls	:list the file\n");
 	   uart_send_string("cat	:print file content\n");
 	   uart_send_string("malloc	:give dynamic memory space\n");
-     } else if (utils_string_compare(input_string,"hello")) {
+	   uart_send_string("dtb	:print device tree\n");
+
+	 } else if (utils_string_compare(input_string,"hello")) {
        uart_send_string("Hello World!\n");
      } else if (utils_string_compare(input_string,"info")) {
            get_board_revision();
@@ -78,7 +82,9 @@ void shell(){
 		 uart_send_char('\n');
 	     uart_send_string(b);
 		 uart_send_char('\n');	 
-	 } else {
+	 }	else if (utils_string_compare(input_string,"dtb")) {
+		 fdt_traverse(print_dtb,_dtb_ptr);
+	 }  else {
 		 uart_send_string("The instruct is not exist.\n");
 	 }
   }

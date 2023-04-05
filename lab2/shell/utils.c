@@ -34,3 +34,10 @@ void utils_align(void *size, unsigned int s) {
 uint32_t utils_align_up(uint32_t size, int alignment) {
   return (size + alignment - 1) & ~(alignment-1);
 }
+
+size_t utils_strlen(const char *s) {
+    size_t i = 0;
+	while (s[i]) i++;
+	return i+1;
+}
+

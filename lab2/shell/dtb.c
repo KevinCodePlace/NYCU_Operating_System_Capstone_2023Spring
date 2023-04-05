@@ -5,6 +5,7 @@
 
 
 char * cpio_addr;
+int space = 0;
 //1. Define the callback function type(fdt_callback)
 //2. Create a structure for holding the FDT header information(fdt_header)
 //3. Implement helper functions to extract the FDT header information
@@ -15,10 +16,8 @@ uint32_t fdt_u32_le2be (const void *addr) {
 	return ret;
 }
 
-size_t my_strlen(const char *s) {
-    size_t i = 0;
-	while (s[i]) i++;
-	return i+1;
+void send_space(int n) {
+	while(n--) uart_send_string(" ");
 }
 
 int parse_struct (fdt_callback cb, uintptr_t cur_ptr, uintptr_t strings_ptr,uint32_t totalsize) {
@@ -37,7 +36,7 @@ int parse_struct (fdt_callback cb, uintptr_t cur_ptr, uintptr_t strings_ptr,uint
 			*/
 				//uart_send_string("In FDT_BEGIN_NODE\n");
 				cb(token, (char*)cur_ptr,NULL,0);	
-				cur_ptr += utils_align_up(my_strlen((char*)cur_ptr),4);
+				cur_ptr += utils_align_up(utils_strlen((char*)cur_ptr),4);
 				break;
 			case FDT_END_NODE:
 			/*
@@ -128,5 +127,36 @@ void get_cpio_addr(int token,const char* name,const void* data,uint32_t size){
 		uart_send_string("cpio address is at: ");
 		uart_hex((uintptr_t)fdt_u32_le2be(data));
 		uart_send_char('\n');
+	}
+}
+
+//6. Implement print_dtb callback function:
+
+void print_dtb(int token, const char* name, const void* data, uint32_t size) {
+	UNUSED(data);
+	UNUSED(size);
+
+	switch(token){
+		case FDT_BEGIN_NODE:
+			uart_send_string("\n");
+			send_space(space);
+			uart_send_string((char*)name);
+			uart_send_string("{\n ");
+			space++;
+			break;
+		case FDT_END_NODE:
+			uart_send_string("\n");
+			space--;
+			if(space >0) send_space(space);
+			uart_send_string("}\n");
+			break;
+		case FDT_NOP:
+			break;
+		case FDT_PROP:
+			send_space(space);
+			uart_send_string((char*)name);
+			break;
+		case FDT_END:
+			break;
 	}
 }
