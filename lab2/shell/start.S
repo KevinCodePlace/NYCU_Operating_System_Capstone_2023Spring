@@ -1,38 +1,36 @@
-.section ".text.kernel"
+.section ".text.boot"
 
 .global _start
 
 _start:
-	//load the address of the _dtb_ptr variable into the x1 register
-	//ensure that x1 holds the correct address 
-    ldr    x1, =_dtb_ptr
-	//store the content of the x0 register into the memory location pointed to by x1.
-    //x0 register is expected to contain the address of the Device Tree Blob (DTB) passed by the bootloader when the kernel starts.
-	str    x0, [x1]  
-	// read cpu id, stop slave cores
-    mrs     x20, mpidr_el1
-    and     x20, x20, #3
-    cbz     x20, setting
+	ldr		x1, =_dtb_ptr	//put _dtb_ptr into register1
+	str		x0, [x1]		//store dtb address from x0 to _dtb_ptr
+    // read cpu id, stop slave cores
+    mrs     x1, mpidr_el1
+    and     x1, x1, #3
+    cbz     x1, 2f
     // cpu id > 0, stop
+1:  wfe
+    b       1b
+2:  // cpu id == 0
 
-halt: 	
-	wfe
-	b	halt
+    // set top of stack just before our code (stack grows to a lower address per AAPCS64)
+    ldr     x1, =_start
+    mov     sp, x1
 
-setting: 
-	adr x20, _sbss
-	adr x21, _ebss
-	sub x21, x21, x20
+    // clear bss
+    ldr     x1, =__bss_start
+    ldr     w2, =__bss_size
+3:  cbz     w2, 4f
+    str     xzr, [x1], #8
+    sub     w2, w2, #1
+    cbnz    w2, 3b
 
-memzero: 
-	str xzr,[x20],#8
-	subs x21,x21,#8
-	b.gt memzero
+    // jump to C code, should not return
+4:  bl      main
+    // for failsafe, halt this core too
+    b       1b
 
-	mov sp,#0x400000
-	bl main
-
-.global _dtb_ptr
-.section .data 
-_dtb_ptr: .dc.a 0x0
-
+.global _dtb_ptr	//define a global variable _dtb_ptr
+.section .data		//_dtb_ptr is in data section
+_dtb_ptr: .dc.a 0x0	//it defines _dtb_ptr to be a 8-byte constant with a value of 0x0

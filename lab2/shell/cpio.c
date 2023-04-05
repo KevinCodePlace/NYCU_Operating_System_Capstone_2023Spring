@@ -4,7 +4,7 @@
 
 char *findFile(char *name)
 {
-    char *addr = (char *)QEMU_CPIO_ADDR;
+    char *addr = (char *)cpio_addr;
     while (utils_string_compare((char *)(addr + sizeof(struct cpio_header)), "TRAILER!!!") == 0)
     {
         if ((utils_string_compare((char *)(addr + sizeof(struct cpio_header)), name) != 0))
@@ -24,7 +24,7 @@ char *findFile(char *name)
 }
 
 void cpio_ls(){
-	char* addr = (char*) QEMU_CPIO_ADDR;
+	char* addr = (char*) cpio_addr;
 
 	while(utils_string_compare((char *)(addr+sizeof(struct cpio_header)),"TRAILER!!!") == 0){
 		

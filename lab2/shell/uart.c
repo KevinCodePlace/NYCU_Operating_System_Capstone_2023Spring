@@ -116,7 +116,7 @@ char uart_get_char() {
 /**
  * Display a binary value in hexadecimal
  */
-void uart_binary_to_hex(unsigned int d) {
+void uart_hex(unsigned int d) {
     unsigned int n;
     int c;
     uart_send_string("0x");
@@ -124,7 +124,7 @@ void uart_binary_to_hex(unsigned int d) {
         // get highest tetrad
         n=(d>>c)&0xF;
         // 0-9 => '0'-'9', 10-15 => 'A'-'F'
-        n+=n>9?0x37:0x30;
+        n+=n>9?0x57:0x30;
         uart_send_char(n);
     }
 }

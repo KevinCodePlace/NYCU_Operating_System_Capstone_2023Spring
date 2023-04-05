@@ -1,6 +1,8 @@
-#define QEMU_CPIO_ADDR  (char *)0x8000000; // qemu
-#define RASP_CPIO_ADDR  (char *)0x20000000;//rasperrypi
- 
+//#define QEMU_CPIO_ADDR  (char *)0x8000000; // qemu
+//#define RASP_CPIO_ADDR  (char *)0x20000000;//rasperrypi
+
+extern char* cpio_addr;
+
 void cpio_ls();
 void cpio_cat(char* filename);
 	

@@ -43,14 +43,14 @@ void shell(){
      } else if (utils_string_compare(input_string,"info")) {
            get_board_revision();
            uart_send_string("My board revision is: ");
-           uart_binary_to_hex(mailbox[5]);
+           uart_hex(mailbox[5]);
            uart_send_string("\n");
            get_arm_mem();
            uart_send_string("My ARM memory base address is: ");
-           uart_binary_to_hex(mailbox[5]);
+           uart_hex(mailbox[5]);
            uart_send_string("\n");
            uart_send_string("My ARM memory size is: ");
-           uart_binary_to_hex(mailbox[6]);
+           uart_hex(mailbox[6]);
            uart_send_string("\n");  
      } else if (utils_string_compare(input_string,"reboot")) {
            uart_send_string("Rebooting....\n");
