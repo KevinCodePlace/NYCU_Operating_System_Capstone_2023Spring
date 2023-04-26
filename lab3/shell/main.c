@@ -16,3 +16,9 @@ void main()
     //echo everything back
 	shell();
 }
+
+void except_handle() {
+	while(1){
+	
+	}
+}

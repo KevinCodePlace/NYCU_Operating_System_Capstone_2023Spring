@@ -6,6 +6,7 @@
 #include "header/cpio.h"
 #include "header/allocator.h"
 #include "header/dtb.h"
+#include "header/exec.h"
 #define BUFFER_MAX_SIZE 256u
 
 extern void *_dtb_ptr;
@@ -41,7 +42,7 @@ void shell(){
 	   uart_send_string("cat	:print file content\n");
 	   uart_send_string("malloc	:give dynamic memory space\n");
 	   uart_send_string("dtb	:print device tree\n");
-
+	   uart_send_string("exec	:execute user program\n");
 	 } else if (utils_string_compare(input_string,"hello")) {
        uart_send_string("Hello World!\n");
      } else if (utils_string_compare(input_string,"info")) {
@@ -84,7 +85,9 @@ void shell(){
 		 uart_send_char('\n');	 
 	 }	else if (utils_string_compare(input_string,"dtb")) {
 		 fdt_traverse(print_dtb,_dtb_ptr);
-	 }  else {
+	 }  else if (utils_string_compare(input_string,"exec")) {
+		 exec_program();
+	 }	else {
 		 uart_send_string("The instruct is not exist.\n");
 	 }
   }
