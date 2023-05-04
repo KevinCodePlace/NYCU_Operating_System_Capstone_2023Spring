@@ -116,8 +116,8 @@ char uart_get_char() {
 /**
  * Display a binary value in hexadecimal
  */
-void uart_hex(unsigned int d) {
-    unsigned int n;
+void uart_hex(unsigned long long d) {
+    unsigned long long n;
     int c;
     uart_send_string("0x");
     for(c=28;c>=0;c-=4) {

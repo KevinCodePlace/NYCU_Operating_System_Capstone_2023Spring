@@ -1,11 +1,15 @@
-//#define QEMU_CPIO_ADDR  (char *)0x8000000; // qemu
+//#define QEMU_CPIO_ADDR  (char *)0x8000000; //qemu
 //#define RASP_CPIO_ADDR  (char *)0x20000000;//rasperrypi
+
+#define MAX_FILE_NUM 10
 
 extern char* cpio_addr;
 
+void traverse_file();
 void cpio_ls();
 void cpio_cat(char* filename);
-	
+void cpio_exec_program(char* filename);
+
 struct cpio_header {
     // uses 8-byte	hexadecimal fields for all numbers
     char c_magic[6];    //determine whether this archive is written with little-endian or big-endian integers.
@@ -23,3 +27,13 @@ struct cpio_header {
     char c_namesize[8]; // number of bytes in the pathname
     char c_check[8];    // always set to zero by writers and ignored by	readers.
 };
+
+
+struct file {
+	struct cpio_header* file_header;
+	unsigned long filename_size;
+	unsigned long headerPathname_size;
+	unsigned long file_size;
+	char* file_content_head;
+};
+

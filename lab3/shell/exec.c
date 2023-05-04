@@ -1,3 +1,0 @@
-void exec_program() {
-
-}

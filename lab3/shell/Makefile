@@ -15,7 +15,7 @@ kernel8.img: start.o $(OBJS)
 	aarch64-linux-gnu-objcopy -O binary kernel8.elf kernel8.img
 
 clean:
-	rm kernel8.elf kernel8.img *.o >/dev/null 2>/dev/null || true
+	rm kernel8.elf *.o >/dev/null 2>/dev/null || true
 
 run:
 	qemu-system-aarch64 -M raspi3b -serial null -serial stdio -initrd initramfs.cpio -dtb bcm2710-rpi-3-b-plus.dtb  -display none  -kernel kernel8.img

@@ -6,7 +6,6 @@
 #include "header/cpio.h"
 #include "header/allocator.h"
 #include "header/dtb.h"
-#include "header/exec.h"
 #define BUFFER_MAX_SIZE 256u
 
 extern void *_dtb_ptr;
@@ -25,15 +24,9 @@ void read_command(char* buffer) {
 	}
 }
 
-void shell(){
-  //char array_space[256];
-  //char* input_string = array_space;
-  char buffer[BUFFER_MAX_SIZE];
-  while(1) {
-     uart_send_string("# ");
-	 read_command(buffer);
-     char * input_string = buffer;
-     if(utils_string_compare(input_string,"help")) {
+void parse_command(char* buffer){
+	char* input_string = buffer;
+	if(utils_string_compare(input_string,"help")) {
        uart_send_string("help	:print this help menu\n");
        uart_send_string("hello	:print Hello World!\n");
        uart_send_string("info	:Get the hardware's information\n");
@@ -86,9 +79,22 @@ void shell(){
 	 }	else if (utils_string_compare(input_string,"dtb")) {
 		 fdt_traverse(print_dtb,_dtb_ptr);
 	 }  else if (utils_string_compare(input_string,"exec")) {
-		 exec_program();
+		 uart_send_string("Program name: ");
+		 char buffer[BUFFER_MAX_SIZE];
+		 read_command(buffer);
+		 cpio_exec_program(buffer);
 	 }	else {
-		 uart_send_string("The instruct is not exist.\n");
+		 uart_send_string("The instruction ");
+		 uart_send_string(input_string);
+		 uart_send_string(" is not exist.\n");
 	 }
+}
+
+void shell(){
+  while(1) {
+	 char buffer[BUFFER_MAX_SIZE];
+     uart_send_string("# ");
+	 read_command(buffer);
+	 parse_command(buffer);
   }
 }
