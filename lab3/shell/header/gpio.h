@@ -1,3 +1,7 @@
+#ifndef GPIO_H
+#define GPIO_H
+
+#include <stdint.h>
 //Page 90, Physical/bus addr diff
 #define MMIO_BASE       0x3F000000
 
@@ -19,3 +23,16 @@
 #define GPPUD           ((volatile unsigned int*)(MMIO_BASE+0x00200094))
 #define GPPUDCLK0       ((volatile unsigned int*)(MMIO_BASE+0x00200098))
 #define GPPUDCLK1       ((volatile unsigned int*)(MMIO_BASE+0x0020009C))
+
+
+// Helper function to write data to a memory-mapped I/O address
+static inline void mmio_write(volatile uint32_t* reg, uint32_t data) {
+    *reg = data;
+}
+
+// Helper function to read data from a memory-mapped I/O address
+static inline uint32_t mmio_read(volatile uint32_t* reg) {
+    return *reg;
+}
+
+#endif

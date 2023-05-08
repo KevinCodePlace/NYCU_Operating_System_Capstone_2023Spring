@@ -1,3 +1,6 @@
+#ifndef UART_H
+#define UART_H
+
 #include "gpio.h"
 #include <stdint.h>
 
@@ -6,6 +9,7 @@ void uart_send_char(unsigned int c);
 char uart_get_char();
 void uart_send_string(char* s);
 void uart_hex(unsigned long long d);
+void uart_enable_interrupt();
 
 #define AUX_ENABLE      ((volatile unsigned int*)(MMIO_BASE+0x00215004))
 #define AUX_MU_IO       ((volatile unsigned int*)(MMIO_BASE+0x00215040))
@@ -19,3 +23,5 @@ void uart_hex(unsigned long long d);
 #define AUX_MU_CNTL     ((volatile unsigned int*)(MMIO_BASE+0x00215060))
 #define AUX_MU_STAT     ((volatile unsigned int*)(MMIO_BASE+0x00215064))
 #define AUX_MU_BAUD     ((volatile unsigned int*)(MMIO_BASE+0x00215068))
+
+#endif

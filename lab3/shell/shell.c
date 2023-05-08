@@ -6,7 +6,9 @@
 #include "header/cpio.h"
 #include "header/allocator.h"
 #include "header/dtb.h"
+#include "header/irq.h"
 #define BUFFER_MAX_SIZE 256u
+
 
 extern void *_dtb_ptr;
 
@@ -83,6 +85,16 @@ void parse_command(char* buffer){
 		 char buffer[BUFFER_MAX_SIZE];
 		 read_command(buffer);
 		 cpio_exec_program(buffer);
+	 }	else if (utils_string_compare(input_string,"timer")) {
+		 asm volatile("msr cntp_ctl_el0,%0"::"r"(1));
+		 unsigned long long cntfrq_el0 = 0;
+		 asm volatile("mrs %0,cntfrq_el0":"=r"(cntfrq_el0));
+		 unsigned long long wait = cntfrq_el0 * 3;
+		 asm volatile("msr cntp_tval_el0,%0"::"r"(wait));
+		 unsigned int value = 2;
+		 unsigned int* address = (unsigned int*) CORE0_TIMER_IRQ_CTRL;
+		 *address = value;
+
 	 }	else {
 		 uart_send_string("The instruction ");
 		 uart_send_string(input_string);
@@ -91,10 +103,14 @@ void parse_command(char* buffer){
 }
 
 void shell(){
+	
+	uart_enable_interrupt();
+	/*	
   while(1) {
 	 char buffer[BUFFER_MAX_SIZE];
      uart_send_string("# ");
 	 read_command(buffer);
 	 parse_command(buffer);
-  }
+  }*/
+	
 }

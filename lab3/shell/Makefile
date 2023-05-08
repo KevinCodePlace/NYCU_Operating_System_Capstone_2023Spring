@@ -1,6 +1,6 @@
 SRCS = $(wildcard *.c)
 OBJS = $(SRCS:.c=.o)
-CFLAGS = -Iinclude -fno-stack-protector -Wall -Wextra -Wpedantic -Werror -O2 -ffreestanding -nostdinc -nostdlib -nostartfiles 
+CFLAGS = -Iinclude -fno-stack-protector -Wall -Wextra -Wpedantic  -O2 -ffreestanding -nostdinc -nostdlib -nostartfiles 
 CFLAGS += -I../../../opt/lib/gcc/aarch64-linux-gnu/12.2.0/include
 all: kernel8.img
 

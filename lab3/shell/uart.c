@@ -1,4 +1,15 @@
 #include "header/uart.h"
+#include "header/irq.h"
+
+#define RX_INTERRUPT_BIT    0x01
+#define TX_INTERRUPT_BIT    0x02
+#define BUFFER_SIZE 1024
+
+static char uart_read_buffer[BUFFER_SIZE];
+static char uart_write_buffer[BUFFER_SIZE];
+static int uart_read_index = 0;
+static int uart_write_index = 0;
+static int uart_write_head = 0;
 
 /**
  * Set baud rate and characteristics (115200 8N1) and map to GPIO
@@ -127,6 +138,19 @@ void uart_hex(unsigned long long d) {
         n+=n>9?0x57:0x30;
         uart_send_char(n);
     }
+}
+
+void uart_enable_interrupt() {
+    
+    // Enable RX and TX interrupt for mini UART
+	uint32_t ier = mmio_read(AUX_MU_IER);
+    ier |= (RX_INTERRUPT_BIT | TX_INTERRUPT_BIT);
+    mmio_write(AUX_MU_IER, ier);
+	
+    // Enable the mini UART interrupt in the second-level interrupt controller
+    uint32_t enable_irqs1 = (uint32_t) ENABLE_IRQS_1;
+    enable_irqs1 |= (1 << 29); // Set bit29
+    mmio_write(ENABLE_IRQS_1, enable_irqs1);
 }
 
 

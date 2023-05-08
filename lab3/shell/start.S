@@ -3,7 +3,7 @@
 
 .global _start
 
-#define CORE0_TIMER_IRQ_CTRL 0x40000040
+
 
 _start:
 	ldr		x1, =_dtb_ptr	//put _dtb_ptr into register1
@@ -26,7 +26,7 @@ _start:
     adr		x0, exception_vector_table
     msr		vbar_el1, x0
 
-	bl		core_timer_enable
+	//bl		core_timer_enable
  	
 	// clear bss
     ldr     x1, =__bss_start
@@ -36,7 +36,7 @@ _start:
     str     xzr, [x1], #8
     sub     w2, w2, #1
     cbnz    w2, 3b
-
+	//bl		core_timer_enable
 	// jump to C code, should not return
 4:  bl      main
     // for failsafe, halt this core too
@@ -49,19 +49,19 @@ from_el2_to_el1:
 	msr		spsr_el2,x0
 	msr		elr_el2,lr
 	eret
-
+/*
 core_timer_enable:
-	mov	x0,1
-	msr cntp_ctl_el0, x0 //enable
-	mrs x0, cntfrq_el0
-	mov x3,5
-	mul x0, x0, x3
-	msr cntp_tval_el0,x0 // set expired time
-	mov x0,2
-	ldr x1, =CORE0_TIMER_IRQ_CTRL
-	str w0,[x1] //unmask timer interrupt
-	ret
-
+	//mov	x0,1
+	//msr cntp_ctl_el0, x0 //enable
+	//mrs x0, cntfrq_el0
+	//mov x3,5
+	//mul x0, x0, x3
+	//msr cntp_tval_el0,x0 // set expired time
+	//mov x0,2
+	//ldr x1, =CORE0_TIMER_IRQ_CTRL
+	//str w0,[x1] //unmask timer interrupt
+	//ret
+*/
 // save general registers to stack
 .macro save_all
     sub sp, sp, 32 * 8
