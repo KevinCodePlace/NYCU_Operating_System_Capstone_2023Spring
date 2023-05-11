@@ -3,6 +3,7 @@
 #include "header/dtb.h"
 #include "header/utils.h"
 #include "header/cpio.h"
+#include "header/timer.h"
 
 extern void *_dtb_ptr;
 void main()
@@ -26,9 +27,19 @@ void main()
 	fdt_traverse(get_cpio_addr,_dtb_ptr);
     traverse_file();
 	uart_send_string("Type in `help` to get instruction menu!\n");
-    
+	 
+	setTimeout("hello world1",3);
+	setTimeout("hello world2",6);
+	setTimeout("hello world3",9);
+	
+	uart_enable_interrupt();
+	
+
+	while(1){
+		asm volatile("nop");
+	}
 	//echo everything back
-	shell();
+	//shell();
 }
 
 

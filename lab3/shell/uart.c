@@ -1,15 +1,18 @@
 #include "header/uart.h"
 #include "header/irq.h"
+#include "header/utils.h"
 
 #define RX_INTERRUPT_BIT    0x01
 #define TX_INTERRUPT_BIT    0x02
-#define BUFFER_SIZE 1024
 
-static char uart_read_buffer[BUFFER_SIZE];
-static char uart_write_buffer[BUFFER_SIZE];
-static int uart_read_index = 0;
-static int uart_write_index = 0;
-static int uart_write_head = 0;
+#define AUXINIT_BIT_POSTION 1<<29
+
+char uart_read_buffer[UART_BUFFER_SIZE];
+char uart_write_buffer[UART_BUFFER_SIZE];
+int uart_read_head = 0;
+int uart_read_index = 0;
+int uart_write_index = 0;
+int uart_write_head = 0;
 
 /**
  * Set baud rate and characteristics (115200 8N1) and map to GPIO
@@ -149,8 +152,41 @@ void uart_enable_interrupt() {
 	
     // Enable the mini UART interrupt in the second-level interrupt controller
     uint32_t enable_irqs1 = (uint32_t) ENABLE_IRQS_1;
-    enable_irqs1 |= (1 << 29); // Set bit29
+    enable_irqs1 |= AUXINIT_BIT_POSTION; // Set bit29
     mmio_write(ENABLE_IRQS_1, enable_irqs1);
 }
 
+void uart_disable_interrupt() {
+	uint32_t disable_irqs1 = (uint32_t) DISABLE_IRQS_1;
+	disable_irqs1 |= AUXINIT_BIT_POSTION;
+	mmio_write(DISABLE_IRQS_1,disable_irqs1);
+}
+
+int uart_async_read(char *buffer) {
+    if (uart_read_head == uart_read_index) {
+        // No characters available
+        return 0;
+    } else {
+        buffer[0] = uart_read_buffer[uart_read_head++];
+        if (uart_read_head >= UART_BUFFER_SIZE) {
+            uart_read_head = 0;
+        }
+        return 1;
+    }
+}
+void uart_async_write(const char *buffer, int length) {
+    for (int i = 0; i < length; i++) {
+        uart_write_buffer[uart_write_head++] = buffer[i];
+        if (uart_write_head >= UART_BUFFER_SIZE) {
+            uart_write_head = 0;
+        }
+    }
+    // Trigger TX interrupt
+    mmio_write(AUX_MU_IER, mmio_read(AUX_MU_IER) | 0x2);
+}
+
+void uart_async_send(const char *str) {
+    int length = utils_strlen(str);
+	uart_async_write(str, length);
+}
 

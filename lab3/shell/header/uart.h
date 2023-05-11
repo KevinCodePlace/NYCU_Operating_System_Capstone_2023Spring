@@ -3,6 +3,7 @@
 
 #include "gpio.h"
 #include <stdint.h>
+#define UART_BUFFER_SIZE 1024
 
 void uart_init();
 void uart_send_char(unsigned int c);
@@ -10,6 +11,16 @@ char uart_get_char();
 void uart_send_string(char* s);
 void uart_hex(unsigned long long d);
 void uart_enable_interrupt();
+int uart_async_read(char *buffer);
+void uart_async_write(const char *buffer, int length);
+void uart_async_send(const char *str);
+
+extern char uart_read_buffer[UART_BUFFER_SIZE];
+extern char uart_write_buffer[UART_BUFFER_SIZE];
+extern int uart_read_index;
+extern int uart_read_head;
+extern int uart_write_index;
+extern int uart_write_head;
 
 #define AUX_ENABLE      ((volatile unsigned int*)(MMIO_BASE+0x00215004))
 #define AUX_MU_IO       ((volatile unsigned int*)(MMIO_BASE+0x00215040))

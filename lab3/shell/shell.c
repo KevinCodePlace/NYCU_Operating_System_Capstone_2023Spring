@@ -25,9 +25,37 @@ void read_command(char* buffer) {
 		index++;
 	}
 }
+/*
+void async_read_command(char* buffer) {
+    int index = 0;
+    char tmp[1];
+
+    while (1) {
+        if (uart_async_read(tmp) > 0) {
+            buffer[index] = tmp[0];
+            uart_send_char(tmp[0]);
+            if (tmp[0] == '\r') {
+                buffer[index] = '\0';
+                break;
+            }
+            index++;
+        }
+    }
+}
+*/
 
 void parse_command(char* buffer){
 	char* input_string = buffer;
+	char* parameter[5]; //5 is the available parameter length
+	int para_idx = 0;
+	int input_string_len = utils_strlen(input_string);
+	for(int i=0; i < input_string_len; i++){
+		if(*(input_string+i) == ' '){
+			*(input_string+i) = '\0';
+			parameter[para_idx++] = (input_string+i+1);
+		}
+	}
+	
 	if(utils_string_compare(input_string,"help")) {
        uart_send_string("help	:print this help menu\n");
        uart_send_string("hello	:print Hello World!\n");
@@ -58,10 +86,11 @@ void parse_command(char* buffer){
      } else if (utils_string_compare(input_string,"ls")) {
 	       cpio_ls();
      } else if (utils_string_compare(input_string,"cat")){
-		   uart_send_string("Filename: ");
-		   char filename[BUFFER_MAX_SIZE];
-		   read_command(filename);
-		   cpio_cat(filename);
+		   //uart_send_string("Filename: ");
+		   //char filename[BUFFER_MAX_SIZE];
+		   //read_command(filename);
+		   //cpio_cat(filename);
+		   cpio_cat(parameter[0]);
 	 } else if (utils_string_compare(input_string,"malloc")){
 		 char *a = simple_malloc(sizeof("9876"));
 		 char *b = simple_malloc(sizeof("345"));
@@ -81,12 +110,12 @@ void parse_command(char* buffer){
 	 }	else if (utils_string_compare(input_string,"dtb")) {
 		 fdt_traverse(print_dtb,_dtb_ptr);
 	 }  else if (utils_string_compare(input_string,"exec")) {
-		 uart_send_string("Program name: ");
-		 char buffer[BUFFER_MAX_SIZE];
-		 read_command(buffer);
-		 cpio_exec_program(buffer);
+		 //uart_send_string("Program name: ");
+		 //char buffer[BUFFER_MAX_SIZE];
+		 //read_command(buffer);
+		 cpio_exec_program(parameter[0]);
 	 }	else if (utils_string_compare(input_string,"timer")) {
-		 asm volatile("msr cntp_ctl_el0,%0"::"r"(1));
+		 //asm volatile("msr cntp_ctl_el0,%0"::"r"(1));
 		 unsigned long long cntfrq_el0 = 0;
 		 asm volatile("mrs %0,cntfrq_el0":"=r"(cntfrq_el0));
 		 unsigned long long wait = cntfrq_el0 * 3;
@@ -103,14 +132,12 @@ void parse_command(char* buffer){
 }
 
 void shell(){
-	
-	uart_enable_interrupt();
-	/*	
-  while(1) {
-	 char buffer[BUFFER_MAX_SIZE];
-     uart_send_string("# ");
-	 read_command(buffer);
-	 parse_command(buffer);
-  }*/
+		
+	while(1) {
+		char buffer[BUFFER_MAX_SIZE];
+		uart_send_string("# ");
+		//async_read_command(buffer);
+		parse_command(buffer);
+	}
 	
 }

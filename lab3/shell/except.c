@@ -1,15 +1,10 @@
 #include "header/uart.h"
 #include "header/irq.h"
+#include "header/shell.h"
+#include "header/timer.h"
 
 #define CNTPSIRQ_BIT_POSITION 0x02
 #define AUXINIT_BIT_POSTION 1<<29
-#define BUFFER_SIZE 1024
-
-extern char uart_read_buffer[BUFFER_SIZE];
-extern char uart_write_buffer[BUFFER_SIZE];
-extern int uart_read_index;
-extern int uart_write_index;
-extern int uart_write_head;
 
 void except_handler_c() {
 	uart_send_string("In Exception handle\n");
@@ -47,8 +42,41 @@ void except_handler_c() {
 
 void timer_irq_handler() {
 
-	uart_send_string("\nIn timer interruption\n");
+	asm volatile("msr cntp_ctl_el0,%0"::"r"(0));
+	// Disable interrupts to protect critical section
+	asm volatile("msr DAIFSet, 0xf");
 
+	uint64_t current_time;
+	asm volatile("mrs %0, cntpct_el0":"=r"(current_time));
+
+	while(timer_head && timer_head->expiry <= current_time) {
+		timer_t *timer = timer_head;
+
+		//Execute the callback
+		timer->callback(timer->data);
+ 
+		// Remove timer from the list
+        timer_head = timer->next;
+        if (timer_head) {
+            timer_head->prev = NULL;
+        }
+		
+		//free timer
+		
+		// Reprogram the hardware timer if there are still timers left
+		if(timer_head) {
+			asm volatile("msr cntp_cval_el0, %0"::"r"(timer_head->expiry));
+			asm volatile("msr cntp_ctl_el0,%0"::"r"(1));
+		} else {
+			asm volatile("msr cntp_ctl_el0,%0"::"r"(0));
+		}
+	
+
+		//enable interrupt
+		asm volatile("msr DAIFClr,0xf");
+	}
+	
+	/*
 	unsigned long long cntpct_el0 = 0;
 	asm volatile("mrs %0,cntpct_el0":"=r"(cntpct_el0));
 
@@ -63,24 +91,66 @@ void timer_irq_handler() {
 	// Reload the timer (you may need to adjust the timer duration)	
 	unsigned long long wait = cntfrq_el0 * 5;
 	asm volatile ("msr cntp_tval_el0, %0"::"r"(wait));
-
+	*/
 }
 
 void uart_irq_handler(){
-	uart_send_string("\nIn uart interruption\n");
-	uint32_t iir = mmio_read(AUX_MU_IIR);
-	 // Check if it is a receive interrupt
+	//uart_send_string("in uart interruption\n");
+	
+	 uint32_t iir = mmio_read(AUX_MU_IIR);
+    // check if it is a receive interrupt
     if ((iir & 0x06) == 0x04) {
-        uart_send_string("Receiver Interrupt");
-		while(1){
+        // read data(8 bytes) and store it in the read buffer
+        //uart_send_string("\nin receive interrupt\n");
+		char data = mmio_read(AUX_MU_IO) & 0xff;
+        uart_read_buffer[uart_read_index++] = data;
+        if (uart_read_index >= UART_BUFFER_SIZE) {
+            uart_read_index = 0;
+        }
 
+        // enqueue the received data into the write buffer
+        uart_write_buffer[uart_write_index++] = data;
+        if (uart_write_index >= UART_BUFFER_SIZE) {
+            uart_write_index = 0;
+        }
+        // enable tx interrupt
+		//uart_send_string("\nenable transmit\n");
+        mmio_write(AUX_MU_IER, mmio_read(AUX_MU_IER) | 0x2);
+    }
+
+    // check if it is a transmit interrupt
+    if ((iir & 0x06) == 0x02) {
+		//uart_send_string("\nin transmit interrupt\n");
+        
+		if (uart_write_buffer[uart_write_index-1] == '\r'){
+			uart_write_buffer[uart_write_index++] = '\n';
+			uart_write_buffer[uart_write_index] = '\0';
 		}
+
+		// send data from the write buffer
+        if (uart_write_head != uart_write_index) {
+            mmio_write(AUX_MU_IO, uart_write_buffer[uart_write_head++]);
+            if (uart_write_index >= UART_BUFFER_SIZE) {
+                uart_write_index = 0;
+            }
+        } else {
+			//uart_send_string("disable transmit\n");
+            // disable tx interrupt when there is no data left to send
+			mmio_write(AUX_MU_IER, mmio_read(AUX_MU_IER) & ~0x2);
+			
+			if(uart_read_buffer[uart_read_index-1] == '\r'){
+				uart_read_buffer[uart_read_index-1] = '\0';
+				parse_command(uart_read_buffer);
+				uart_read_index = 0;
+				uart_write_index = 0;
+				uart_write_head = 0;
+			}
+        }
     }
 }
 
 void irq_except_handler_c() {
 
-	uart_send_string("In Interrupt\n");
 	uint32_t irq_pending1 = mmio_read(IRQ_PENDING_1);
 	uint32_t core0_interrupt_source = mmio_read(CORE0_INTERRUPT_SOURCE);	
 	
