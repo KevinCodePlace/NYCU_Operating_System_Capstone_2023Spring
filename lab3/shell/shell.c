@@ -7,6 +7,7 @@
 #include "header/allocator.h"
 #include "header/dtb.h"
 #include "header/irq.h"
+#include "header/timer.h"
 #define BUFFER_MAX_SIZE 256u
 
 
@@ -115,15 +116,16 @@ void parse_command(char* buffer){
 		 //read_command(buffer);
 		 cpio_exec_program(parameter[0]);
 	 }	else if (utils_string_compare(input_string,"timer")) {
-		 //asm volatile("msr cntp_ctl_el0,%0"::"r"(1));
-		 unsigned long long cntfrq_el0 = 0;
-		 asm volatile("mrs %0,cntfrq_el0":"=r"(cntfrq_el0));
-		 unsigned long long wait = cntfrq_el0 * 3;
-		 asm volatile("msr cntp_tval_el0,%0"::"r"(wait));
-		 unsigned int value = 2;
-		 unsigned int* address = (unsigned int*) CORE0_TIMER_IRQ_CTRL;
-		 *address = value;
+		  
+		setTimeout("hello world1",3);
+		setTimeout("hello world2",6);
+		setTimeout("hello world3",9);
 
+	 }	else if (utils_string_compare(input_string,"settimeout")) {
+		char *message = (char *)parameter[0];
+		size_t second_str_len = utils_strlen(parameter[1]);
+		uint64_t seconds = (uint64_t) utils_atoi(parameter[1],second_str_len-1);
+		setTimeout(message,seconds);
 	 }	else {
 		 uart_send_string("The instruction ");
 		 uart_send_string(input_string);
@@ -132,12 +134,13 @@ void parse_command(char* buffer){
 }
 
 void shell(){
-		
+	/*	
 	while(1) {
 		char buffer[BUFFER_MAX_SIZE];
 		uart_send_string("# ");
 		//async_read_command(buffer);
 		parse_command(buffer);
 	}
+	*/
 	
 }

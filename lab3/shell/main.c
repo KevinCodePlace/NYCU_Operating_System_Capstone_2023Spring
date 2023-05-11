@@ -27,10 +27,6 @@ void main()
 	fdt_traverse(get_cpio_addr,_dtb_ptr);
     traverse_file();
 	uart_send_string("Type in `help` to get instruction menu!\n");
-	 
-	setTimeout("hello world1",3);
-	setTimeout("hello world2",6);
-	setTimeout("hello world3",9);
 	
 	uart_enable_interrupt();
 	
