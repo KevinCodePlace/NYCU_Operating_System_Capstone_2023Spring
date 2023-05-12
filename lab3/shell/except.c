@@ -1,10 +1,13 @@
+
 #include "header/uart.h"
 #include "header/irq.h"
 #include "header/shell.h"
 #include "header/timer.h"
+#include "header/tasklist.h"
 
 #define CNTPSIRQ_BIT_POSITION 0x02
 #define AUXINIT_BIT_POSTION 1<<29
+
 
 void except_handler_c() {
 	uart_send_string("In Exception handle\n");
@@ -75,76 +78,50 @@ void timer_irq_handler() {
 		//enable interrupt
 		asm volatile("msr DAIFClr,0xf");
 	}
-	
-	/*
-	unsigned long long cntpct_el0 = 0;
-	asm volatile("mrs %0,cntpct_el0":"=r"(cntpct_el0));
 
-	unsigned long long cntfrq_el0 = 0;
-	asm volatile("mrs %0,cntfrq_el0":"=r"(cntfrq_el0));
-
-	unsigned long long sec = cntpct_el0 / cntfrq_el0;
-	uart_send_string("sec:");
-	uart_hex(sec);
-	uart_send_string("\n");
-   
-	// Reload the timer (you may need to adjust the timer duration)	
-	unsigned long long wait = cntfrq_el0 * 5;
-	asm volatile ("msr cntp_tval_el0, %0"::"r"(wait));
-	*/
 }
 
-void uart_irq_handler(){
-	//uart_send_string("in uart interruption\n");
-	
-	 uint32_t iir = mmio_read(AUX_MU_IIR);
-    // check if it is a receive interrupt
-    if ((iir & 0x06) == 0x04) {
-        // read data(8 bytes) and store it in the read buffer
-        //uart_send_string("\nin receive interrupt\n");
-		char data = mmio_read(AUX_MU_IO) & 0xff;
-        uart_read_buffer[uart_read_index++] = data;
-        if (uart_read_index >= UART_BUFFER_SIZE) {
-            uart_read_index = 0;
-        }
+void uart_receive_handler() {
+	// Read data(8 bytes) and store it in the read buffer
+    char data = mmio_read(AUX_MU_IO) & 0xff;
+    uart_read_buffer[uart_read_index++] = data;
+    if (uart_read_index >= UART_BUFFER_SIZE) {
+        uart_read_index = 0;
+    }
 
-        // enqueue the received data into the write buffer
-        uart_write_buffer[uart_write_index++] = data;
+    // Enqueue the received data into the write buffer
+    uart_write_buffer[uart_write_index++] = data;
+    if (uart_write_index >= UART_BUFFER_SIZE) {
+        uart_write_index = 0;
+    }
+
+	// Enable tx interrupt
+    mmio_write(AUX_MU_IER, mmio_read(AUX_MU_IER) | 0x2);
+}
+
+void uart_transmit_handler() {
+	
+	if (uart_write_buffer[uart_write_index-1] == '\r'){
+		uart_write_buffer[uart_write_index++] = '\n';
+		uart_write_buffer[uart_write_index] = '\0';
+	}
+
+	// Send data from the write buffer
+    if (uart_write_head != uart_write_index) {
+        mmio_write(AUX_MU_IO, uart_write_buffer[uart_write_head++]);
         if (uart_write_index >= UART_BUFFER_SIZE) {
             uart_write_index = 0;
         }
-        // enable tx interrupt
-		//uart_send_string("\nenable transmit\n");
-        mmio_write(AUX_MU_IER, mmio_read(AUX_MU_IER) | 0x2);
-    }
+    } else {
+        // Disable tx interrupt when there is no data left to send
+        mmio_write(AUX_MU_IER, mmio_read(AUX_MU_IER) & ~0x2);
 
-    // check if it is a transmit interrupt
-    if ((iir & 0x06) == 0x02) {
-		//uart_send_string("\nin transmit interrupt\n");
-        
-		if (uart_write_buffer[uart_write_index-1] == '\r'){
-			uart_write_buffer[uart_write_index++] = '\n';
-			uart_write_buffer[uart_write_index] = '\0';
-		}
-
-		// send data from the write buffer
-        if (uart_write_head != uart_write_index) {
-            mmio_write(AUX_MU_IO, uart_write_buffer[uart_write_head++]);
-            if (uart_write_index >= UART_BUFFER_SIZE) {
-                uart_write_index = 0;
-            }
-        } else {
-			//uart_send_string("disable transmit\n");
-            // disable tx interrupt when there is no data left to send
-			mmio_write(AUX_MU_IER, mmio_read(AUX_MU_IER) & ~0x2);
-			
-			if(uart_read_buffer[uart_read_index-1] == '\r'){
-				uart_read_buffer[uart_read_index-1] = '\0';
-				parse_command(uart_read_buffer);
-				uart_read_index = 0;
-				uart_write_index = 0;
-				uart_write_head = 0;
-			}
+        if(uart_read_buffer[uart_read_index-1] == '\r'){
+            uart_read_buffer[uart_read_index-1] = '\0';
+            parse_command(uart_read_buffer);
+            uart_read_index = 0;
+            uart_write_index = 0;
+            uart_write_head = 0;
         }
     }
 }
@@ -153,15 +130,78 @@ void irq_except_handler_c() {
 
 	uint32_t irq_pending1 = mmio_read(IRQ_PENDING_1);
 	uint32_t core0_interrupt_source = mmio_read(CORE0_INTERRUPT_SOURCE);	
-	
+	uint32_t iir = mmio_read(AUX_MU_IIR);
+
 	if (core0_interrupt_source & CNTPSIRQ_BIT_POSITION) {
-		timer_irq_handler();
+		uart_send_string("Create timer interrupt\n");
+		create_task(timer_irq_handler,1);
+		//timer_irq_handler();
     }
 
     // Handle UART interrupt
     if (irq_pending1 & AUXINIT_BIT_POSTION) {
-        uart_irq_handler();
-    }		
+         if ((iir & 0x06) == 0x04) {
+			 uart_send_string("Create uart receive task\n");
+			 //create_task(uart_receive_handler,1);
+			 uart_receive_handler();
+		 }
+
+		if ((iir & 0x06) == 0x02) {
+			uart_send_string("Create uart transmit task\n");
+			//create_task(uart_transmit_handler,1);
+			uart_transmit_handler();
+			
+		}
+    }	
+	
+	execute_tasks();
+	
 }
 
+/*
+void uart_irq_handler(){
+	uint32_t iir = mmio_read(AUX_MU_IIR);
 
+    // Check if it is a receive interrupt
+    if ((iir & 0x06) == 0x04) {
+        // Read data(8 bytes) and store it in the read buffer
+        char data = mmio_read(AUX_MU_IO) & 0xff;
+        uart_read_buffer[uart_read_index++] = data;
+        if (uart_read_index >= UART_BUFFER_SIZE) {
+            uart_read_index = 0;
+        }
+
+        // Enqueue the received data into the write buffer
+        uart_write_buffer[uart_write_index++] = data;
+        if (uart_write_index >= UART_BUFFER_SIZE) {
+            uart_write_index = 0;
+        }
+
+        // Enable tx interrupt
+        mmio_write(AUX_MU_IER, mmio_read(AUX_MU_IER) | 0x2);
+    }
+
+    // Check if it is a transmit interrupt
+    if ((iir & 0x06) == 0x02) {
+        // Send data from the write buffer
+        if (uart_write_head != uart_write_index) {
+            mmio_write(AUX_MU_IO, uart_write_buffer[uart_write_head++]);
+            if (uart_write_index >= UART_BUFFER_SIZE) {
+                uart_write_index = 0;
+            }
+        } else {
+            // Disable tx interrupt when there is no data left to send
+            mmio_write(AUX_MU_IER, mmio_read(AUX_MU_IER) & ~0x2);
+
+            if(uart_read_buffer[uart_read_index-1] == '\r'){
+                uart_read_buffer[uart_read_index-1] = '\0';
+                parse_command(uart_read_buffer);
+                uart_read_index = 0;
+                uart_write_index = 0;
+                uart_write_head = 0;
+            }
+        }
+    }	
+}
+
+*/

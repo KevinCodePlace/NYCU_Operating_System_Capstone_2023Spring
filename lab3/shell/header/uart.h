@@ -15,6 +15,7 @@ int uart_async_read(char *buffer);
 void uart_async_write(const char *buffer, int length);
 void uart_async_send(const char *str);
 
+
 extern char uart_read_buffer[UART_BUFFER_SIZE];
 extern char uart_write_buffer[UART_BUFFER_SIZE];
 extern int uart_read_index;
