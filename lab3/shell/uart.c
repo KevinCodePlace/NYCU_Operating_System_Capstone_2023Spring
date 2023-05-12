@@ -147,8 +147,8 @@ void uart_enable_interrupt() {
     
     // Enable RX and TX interrupt for mini UART
 	uint32_t ier = mmio_read(AUX_MU_IER);
-    //ier |= RX_INTERRUPT_BIT;
-	ier |= (RX_INTERRUPT_BIT | TX_INTERRUPT_BIT);
+    ier |= RX_INTERRUPT_BIT;
+	//ier |= (RX_INTERRUPT_BIT | TX_INTERRUPT_BIT);
     mmio_write(AUX_MU_IER, ier);
 	
     // Enable the mini UART interrupt in the second-level interrupt controller

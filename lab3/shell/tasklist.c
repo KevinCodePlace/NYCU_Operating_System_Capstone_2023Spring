@@ -7,16 +7,18 @@ task_t *task_head = NULL;
 void enqueue_task(task_t *new_task) {
     // Disable interrupts to protect the critical section
     asm volatile("msr DAIFSet, 0xf");
-
+	uart_send_string("ENQUEUE task\n");
     // Special case: the list is empty or the new task has higher priority
     if (!task_head || new_task->priority < task_head->priority) {
-        new_task->next = task_head;
+        uart_send_string("first or early task\n");
+		new_task->next = task_head;
         new_task->prev = NULL;
         if (task_head) {
             task_head->prev = new_task;
         }
         task_head = new_task;
     } else {
+		uart_send_string("normal task\n");
         // Find the correct position in the list
         task_t *current = task_head;
         while (current->next && current->next->priority <= new_task->priority) {
@@ -50,17 +52,17 @@ void create_task(task_callback callback, uint64_t priority) {
 }
 
 void execute_tasks() {
-    asm volatile("msr DAIFSet, 0xf"); // Disable interrupts
+	
 
     while (task_head) {
-        
+		uart_send_string("start to execute\n");        
         task_head->callback();
-
+		uart_send_string("Finished task\n");
         task_head = task_head->next;
         if (task_head) {
             task_head->prev = NULL;
         }
-
+		asm volatile("msr DAIFSet, 0xf"); // Disable interrupts
         //simple_free(task);
     }
 
