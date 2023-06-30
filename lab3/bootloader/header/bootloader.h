@@ -1,1 +1,0 @@
-void load_img();
