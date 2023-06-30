@@ -1,3 +1,0 @@
-kernel=bootloader.img
-arm_64bit=1
-initramfs initramfs.cpio 0x20000000

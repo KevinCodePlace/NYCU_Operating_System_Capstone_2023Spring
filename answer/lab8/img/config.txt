@@ -1,3 +1,0 @@
-kernel=bootloader.img
-arm_64bit=1
-initramfs initramf.gz 0x20000000
