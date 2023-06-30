@@ -5,7 +5,7 @@ Welcome to the Operating System Capstone course for Spring 2023! This course foc
 The hardware platform used in this course is the Raspberry Pi 3 Model B+ (referred to as rpi3). Working with a real machine instead of an emulator allows you to gain hands-on experience.
 
 ## Labs
-### Lab 0: Environment Setup
+### Lab 0: Environment Setup, [Notes](https://hackmd.io/@OJo2ruXGShKdpuewtwzZcQ/S104l7ZS3)
 In Lab 0, you will set up the development environment for future development. This includes installing the target toolchain and using it to build a bootable image for rpi3.
 
 Goals of this lab:
@@ -14,7 +14,7 @@ Goals of this lab:
 - Understand the concept of cross-platform development.
 - Test your rpi3.
 
-### Lab 1: Hello World
+### Lab 1: Hello World, [Notes](https://hackmd.io/@OJo2ruXGShKdpuewtwzZcQ/S104l7ZS3)
 Lab 1 focuses on bare metal programming. You will implement a simple shell and establish communication between your host machine and rpi3 using the mini UART.
 
 Goals of this lab:
@@ -24,7 +24,7 @@ Goals of this lab:
 - Set up the mini UART.
 - Set up the mailbox.
 
-### Lab 2: Booting
+### Lab 2: Booting, [Notes](https://hackmd.io/@OJo2ruXGShKdpuewtwzZcQ/Hy6j7lzrn)
 Booting is the process of initializing the environment to run various user programs after a computer reset. Lab 2 introduces one method to load your kernel and user programs, as well as how to match devices to drivers on rpi3. Subsequent labs will cover the initialization of remaining subsystems.
 
 Goals of this lab:
@@ -34,7 +34,7 @@ Goals of this lab:
 - Understand the concept of initial ramdisk.
 - Understand the concept of devicetree.
 
-### Lab 3: Exception and Interrupt
+### Lab 3: Exception and Interrupt, [Notes](https://hackmd.io/@OJo2ruXGShKdpuewtwzZcQ/r1WP_BrX3)
 In Lab 3, you will explore exceptions and interrupts. Exceptions are events that cause the currently executing program to relinquish the CPU to the corresponding handler. Understanding exception handling and interrupts is crucial for proper error handling and interaction with operating system services.
 
 Goals of this lab:
