@@ -46,7 +46,7 @@ Goals of this lab:
 - Learn how to multiplex a timer.
 - Learn how to concurrently handle I/O devices.
 
-### Lab 4: Allocator
+### Lab 4: Allocator, [Notes](https://hackmd.io/@OJo2ruXGShKdpuewtwzZcQ/SJYrXgY93)
 Memory allocation is essential for maintaining the internal states of a kernel and supporting user programs. Lab 4 focuses on implementing memory allocators, which will be utilized in subsequent labs.
 
 Goals of this lab:
