@@ -55,7 +55,7 @@ Goals of this lab:
 - Implement a dynamic memory allocator.
 - Implement a startup allocator.
 
-### Lab 5: Thread and User Process
+### Lab 5: Thread and User Process, [Notes, Credit to Jerry Ho](https://hackmd.io/@mingchuho/SyN9af3U3)
 Multitasking is a fundamental feature of an operating system. In Lab 5, you will learn how to create threads and switch between them to achieve multitasking. Additionally, you will explore how user programs become user processes and access kernel services through system calls.
 
 Goals of this lab:
